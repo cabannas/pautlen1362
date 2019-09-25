@@ -1,0 +1,25 @@
+Ejercicio de clase 23/09/2019.
+==============================
+
+1. Crear una calculadora de enteros (CalcNASM):
+   a. Los operadores están en variables 
+   b. Tiene las opciones:
+      "Menú: [1] Suma. [2] Multilpicación. [3] Parte entera de una división. [4] Salir."
+      "Su opción: "
+   c. Escribir el resultado de la operación en pantalla. Ej: 5 + 7 = 12.
+   b. Volver a pintar las opciones
+
+2. Cree una función en C void calculadoraNASM(int operando_1, int operando_2), que imprima en pantalla 
+   el código NASM del punto 1. Se aconsaja dividir en funciones las partes del programa. Cree el programa en C (CalcC) para ejecutar la función. 
+
+3. Cree el programa en C (CalcArgs) para que genere un fichero <file_nasm>.asm. El programa recibe los parámetros 
+   file_nasm, operando_1 y operando_2. El programa generado <file_nasm>.asm se debe compilar y ejecutar.
+      
+Puntuación
+==========
+(5) Entrega de los puntos 1, 2 y 3 funcionando.    
+(3) Entrega de los puntos 1 y 2 funcionando.
+(2) Entrega del punto 1 funcionando.
+
+Adjunta tu entrega a enrique.chavarriaga@uam.es con el título de correo [PAUTLEN] Calculadora NASM con la siguiente información:
+-> Nombres completos del grupo. 
