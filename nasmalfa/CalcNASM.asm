@@ -12,12 +12,11 @@ segment .data
     _simbdiv db " / ", 0
     _simbigual db " = ", 0
 
-    _x dd 110
-    _y dd 11
-
 segment .bss
 	__esp    resd 1
 	_option  resd 1
+	_x resd 1
+	_y resd 1
 	_z resd 1
 
 segment .text
@@ -56,10 +55,18 @@ menu:
 	call menu
 
 suma:
-  mov eax, [_x]
-  mov edx, [_y]
-	add eax, edx
+  push dword _x
+  call scan_int
+	add esp, 4
+	push dword [_x]
+  push dword _y
+  call scan_int
+	add esp, 4
+	push dword [_y]
 
+	mov eax, [_x]
+	mov edx, [_y]
+	add eax, edx
 	mov [_z], eax
 
 	push dword _sumares
@@ -85,6 +92,15 @@ suma:
   call menu
 
 multiplicacion:
+  push dword _x
+  call scan_int
+	add esp, 4
+	push dword [_x]
+  push dword _y
+  call scan_int
+	add esp, 4
+	push dword [_y]
+
 	mov eax, [_x]
 	mov edx, [_y]
 	imul edx
@@ -114,6 +130,15 @@ multiplicacion:
   call menu
 
 division:
+  push dword _x
+  call scan_int
+	add esp, 4
+	push dword [_x]
+  push dword _y
+  call scan_int
+	add esp, 4
+	push dword [_y]
+
   mov edx, 0
 	mov eax, [_x]
 	mov ecx, [_y]

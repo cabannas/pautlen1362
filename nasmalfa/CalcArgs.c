@@ -3,7 +3,7 @@
 #include <string.h>
 
 
-void imprimirCabeceras(FILE *fp){
+void imprimirCabeceras(FILE *fp, int operando_1, int operando_2){
 
   fprintf(fp,"segment .data\n");
   fprintf(fp,"\t_label_menu db \"Menú: [1] Suma. [2] Multilpicación. [3] Parte entera de una división. [4] Salir.\", 0\n");
@@ -20,11 +20,13 @@ void imprimirCabeceras(FILE *fp){
   fprintf(fp,"\t_simbigual db \" = \", 0\n");
   fprintf(fp,"\n");
 
+  fprintf(fp,"\t_x dd %d\n", operando_1);
+  fprintf(fp,"\t_y dd %d\n", operando_2);
+  fprintf(fp,"\n");
+
   fprintf(fp,"segment .bss\n");
   fprintf(fp,"\t__esp    resd 1\n");
   fprintf(fp,"\t_option  resd 1\n");
-  fprintf(fp,"\t_x resd 1\n");
-  fprintf(fp,"\t_y resd 1\n");
   fprintf(fp,"\t_z resd 1\n");
   fprintf(fp,"\n");
 
@@ -75,16 +77,6 @@ void imprimirMenu(FILE *fp){
 void imprimeSuma(FILE *fp){
 
   fprintf(fp,"suma:\n");
-  fprintf(fp,"\tpush dword _x\n");
-  fprintf(fp,"\tcall scan_int\n");
-  fprintf(fp,"\tadd esp, 4\n");
-  fprintf(fp,"\tpush dword [_x]\n");
-  fprintf(fp,"\tpush dword _y\n");
-  fprintf(fp,"\tcall scan_int\n");
-  fprintf(fp,"\tadd esp, 4\n");
-  fprintf(fp,"\tpush dword [_y]\n");
-  fprintf(fp,"\n");
-
   fprintf(fp,"\tmov eax, [_x]\n");
   fprintf(fp,"\tmov edx, [_y]\n");
   fprintf(fp,"\tadd eax, edx\n");
@@ -119,16 +111,6 @@ void imprimeSuma(FILE *fp){
 void imprimeMultiplicacion(FILE *fp){
 
   fprintf(fp,"multiplicacion:\n");
-  fprintf(fp,"\tpush dword _x\n");
-  fprintf(fp,"\tcall scan_int\n");
-  fprintf(fp,"\tadd esp, 4\n");
-  fprintf(fp,"\tpush dword [_x]\n");
-  fprintf(fp,"\tpush dword _y\n");
-  fprintf(fp,"\tcall scan_int\n");
-  fprintf(fp,"\tadd esp, 4\n");
-  fprintf(fp,"\tpush dword [_y]\n");
-  fprintf(fp,"\n");
-
   fprintf(fp,"\tmov eax, [_x]\n");
   fprintf(fp,"\tmov edx, [_y]\n");
   fprintf(fp,"\timul edx\n");
@@ -163,19 +145,9 @@ void imprimeMultiplicacion(FILE *fp){
 void imprimeDivision(FILE *fp){
 
   fprintf(fp,"division:\n");
-  fprintf(fp,"\tpush dword _x\n");
-  fprintf(fp,"\tcall scan_int\n");
-  fprintf(fp,"\tadd esp, 4\n");
-  fprintf(fp,"\tpush dword [_x]\n");
-  fprintf(fp,"\tpush dword _y\n");
-  fprintf(fp,"\tcall scan_int\n");
-  fprintf(fp,"\tadd esp, 4\n");
-  fprintf(fp,"\tpush dword [_y]\n");
-  fprintf(fp,"\n");
-
   fprintf(fp,"\tmov edx, 0\n");
   fprintf(fp,"\tmov eax, [_x]\n");
-  fprintf(fp,"\tmov edx, [_y]\n");
+  fprintf(fp,"\tmov ecx, [_y]\n");
   fprintf(fp,"\tidiv ecx\n");
   fprintf(fp,"\tmov [_z], eax\n");
   fprintf(fp,"\n");
@@ -213,35 +185,39 @@ void imprimeSalir(FILE *fp){
   fprintf(fp,"\n");
 }
 
-void calculadoraNASM (int operando_1, int operando_2){
+void calculadoraNASM (FILE *fp, int operando_1, int operando_2){
 
-  FILE *fp;
-
-  fp = fopen("CalcC.asm", "w+");
-
-  imprimirCabeceras(fp);
+  imprimirCabeceras(fp, operando_1, operando_2);
   imprimirMenu(fp);
   imprimeSuma(fp);
   imprimeMultiplicacion(fp);
   imprimeDivision(fp);
   imprimeSalir(fp);
 
-  fclose(fp);
-
 }
 
-int main (){
+int main(int argc, char *argv[]){
 
+  FILE * fp;
   int op1 = 0, op2 = 0;
 
-  printf("Introduzca el primer operando:");
-  scanf("%d", &op1);
+  char *name = argv[1];
+  char *end = ".asm";
+  char fullname[80] = "";
 
-  printf("Introduzca el primer operando:");
-  scanf("%d", &op1);
+  strcat(fullname, name);
+  strcat(fullname, end);
+
+  fp = fopen(fullname, "w+");
+
+  op1 = atoi(argv[2]);
+  op2 = atoi(argv[3]);
 
 
-  calculadoraNASM(op1, op2);
+
+  calculadoraNASM(fp, op1, op2);
+
+  fclose(fp);
 
   return 0;
 }
