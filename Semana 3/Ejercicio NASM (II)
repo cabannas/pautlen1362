@@ -1,0 +1,17 @@
+Ejercicio NASM (II)
+
+Objetivo:
+--------
+Consiste en implementar el fichero "nasm.h" que genere código NASM.
+
+Ficheros:
+--------
+Se adjuntan los ficheros:
+1. nasm.h
+Se encuentran 16 funciones a implementar en el fichero nasmXX.c (XX número del grupo), 
+con su debida explicación de su funcionalidad.
+Nota: nasmXX.c se entrega por correo a final de clase.
+
+2. s3_ej0.c, s3_ej1.c, s3_ej2.c, s3_ej3.c, s3_ej4.c
+- Programas en C que validan la implementación de todas las funciones.
+- Cada programa tiene la salida de consola correspondiente.
