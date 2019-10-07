@@ -11,20 +11,31 @@
 Todas ellas escriben el código NASM a un FILE* proporcionado como primer
 argumento.
 */
-void escribir_cabecera_bss(FILE* fpasm);
+void escribir_cabecera_bss(FILE* fpasm){
+
+  fprintf(fpasm,"segment .data\n");
+}
 /*
 Código para el principio de la sección .bss.
 Con seguridad sabes que deberás reservar una variable entera para guardar el
 puntero de pila extendido (esp). Se te sugiere el nombre __esp para esta variable.
 */
-void escribir_subseccion_data(FILE* fpasm);
+void escribir_subseccion_data(FILE* fpasm){
+
+  fprintf(fpasm,"\n");
+  fprintf(fpasm,"segment .bss\n");
+  fprintf(fpasm,"\t__esp resd 1\n");
+}
 /*
 Declaración (con directiva db) de las variables que contienen el texto de los
 mensajes para la identificación de errores en tiempo de ejecución.
 En este punto, al menos, debes ser capaz de detectar la división por 0.
 */
 
-void declarar_variable(FILE* fpasm, char * nombre, int tipo, int tamano);
+void declarar_variable(FILE* fpasm, char * nombre, int tipo, int tamano){
+
+  fprintf(f,"\t_%s resd %d\n", nombre, tamano);
+}
 /*
 Para ser invocada en la sección .bss cada vez que se quiera declarar una
 variable:
@@ -35,18 +46,37 @@ del principio del fichero).
 vectores, por eso se adjunta un argumento final (tamano) que para esta
 primera práctica siempre recibirá el valor 1.
 */
-void escribir_segmento_codigo(FILE* fpasm);
+void escribir_segmento_codigo(FILE* fpasm){
+
+  fprintf(fpasm,"\n");
+  fprintf(fpasm,"segment .text\n");
+  fprintf(fpasm,"\tglobal main\n");
+  fprintf(fpasm,"\textern scan_int, print_int, scan_float, print_float, scan_boolean, print_boolean\n");
+  fprintf(fpasm,"\textern print_endofline, print_blank, print_string\n");
+  fprintf(fpasm,"\textern alfa_malloc, alfa_free, ld_float\n");
+  fprintf(fpasm,"\n");
+}
 /*
 Para escribir el comienzo del segmento .text, básicamente se indica que se
 exporta la etiqueta main y que se usarán las funciones declaradas en la librería
 alfalib.o
 */
-void escribir_inicio_main(FILE* fpasm);
+void escribir_inicio_main(FILE* fpasm){
+
+  fprintf(fpasm,"main:\n");
+  fprintf(fpasm,"\tmov dword [__esp], esp\n");
+  fprintf(fpasm,"\n");
+}
 /*
 En este punto se debe escribir, al menos, la etiqueta main y la sentencia que
 guarda el puntero de pila en su variable (se recomienda usar __esp).
 */
-void escribir_fin(FILE* fpasm);
+void escribir_fin(FILE* fpasm){
+
+  fprintf(fpasm,"quit:\n");
+  fprintf(fpasm,"\tmov dword esp, [__esp]\n");
+  fprintf(fpasm,"\tret\n");
+}
 /*
 Al final del programa se escribe:
 - El código NASM para salir de manera controlada cuando se detecta un error
@@ -139,4 +169,21 @@ Se deben insertar en la pila los argumentos necesarios, realizar la llamada
 void leer(FILE* fpasm, char* nombre, int tipo);
 void escribir(FILE* fpasm, int es_variable, int tipo);
 
-#endif
+
+void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
+void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
+void ifthen_fin(FILE * fpasm, int etiqueta);
+void ifthenelse_fin_then( FILE * fpasm, int etiqueta);
+void ifthenelse_fin( FILE * fpasm, int etiqueta);
+void while_inicio(FILE * fpasm, int etiqueta);
+void while_exp_pila (FILE * fpasm, int exp_es_variable, int etiqueta);
+void while_fin( FILE * fpasm, int etiqueta);
+void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, int exp_es_direccion);
+void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc);
+void retornarFuncion(FILE * fd_asm, int es_variable);
+void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros);
+void escribirVariableLocal(FILE* fpasm, int posicion_variable_local);
+void asignarDestinoEnPila(FILE* fpasm, int es_variable);
+void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable);
+void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos);
+void limpiarPila(FILE * fd_asm, int num_argumentos);
