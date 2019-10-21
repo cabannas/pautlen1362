@@ -1,6 +1,3 @@
-#ifndef GENERACION_H
-#define GENERACION_H
-
 #include <stdio.h>
 
 /* Declaraciones de tipos de datos del compilador */
@@ -15,7 +12,8 @@ void escribir_cabecera_bss(FILE* fpasm){
 
   fprintf(fpasm,";escribir_cabecera_bss\n");
 
-  fprintf(fpasm,"segment .data\n");
+  fprintf(fpasm,"segment .bss\n");
+  fprintf(fpasm,"\t__esp resd 1\n");
 }
 /*
 Código para el principio de la sección .bss.
@@ -27,8 +25,7 @@ void escribir_subseccion_data(FILE* fpasm){
   fprintf(fpasm,"\n");
   fprintf(fpasm,";escribir_subseccion_data\n");
 
-  fprintf(fpasm,"segment .bss\n");
-  fprintf(fpasm,"\t__esp resd 1\n");
+  fprintf(fpasm,"segment .data\n");
 }
 /*
 Declaración (con directiva db) de las variables que contienen el texto de los
@@ -40,7 +37,7 @@ void declarar_variable(FILE* fpasm, char * nombre, int tipo, int tamano){
 
   fprintf(fpasm,";declarar_variable\n");
 
-  fprintf(f,"\t_%s resd %d\n", nombre, tamano);
+  fprintf(fpasm,"\t_%s resd %d\n", nombre, tamano);
 }
 /*
 Para ser invocada en la sección .bss cada vez que se quiera declarar una
@@ -104,7 +101,7 @@ void escribir_operando(FILE* fpasm, char* nombre, int es_variable){
   fprintf(fpasm,";escribir_operando\n");
 
   if(es_variable){
-    fprintf(fpasm,"\tpush dword [_%s]\n", nombre);
+    fprintf(fpasm,"\tpush dword _%s\n", nombre);
   }else{
     fprintf(fpasm,"\tpush dword %s\n", nombre);
   }
@@ -127,11 +124,11 @@ void asignar(FILE* fpasm, char* nombre, int es_variable){
   /* no se puede hacer pop en una variable directamente, tenemos que usar
   los registros*/
   if(es_variable){
-    fprintf(fpasm,"\tmov eax, [eax]\n");
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
     /* de este modo, si es una variable lo que está en el registro, sacaremos
     el valor de la variable y reescribiremos el registro*/
   }
-  fprintf(fpasm,"\tmov [_%s], eax\n", nombre);
+  fprintf(fpasm,"\tmov dword [_%s], eax\n", nombre);
   /* asignamos a la nueva variable el valor que se encuentra en el registro*/
 
 
@@ -165,12 +162,12 @@ void sumar(FILE* fpasm, int es_variable_1, int es_variable_2){
 
   fprintf(fpasm,"\tpop dword edx\n");
   if(es_variable_2){
-    fprintf(fpasm,"\tmov edx, [edx]\n");
+    fprintf(fpasm,"\tmov dword edx, [edx]\n");
   }
 
   fprintf(fpasm,"\tpop dword eax\n");
   if(es_variable_1){
-    fprintf(fpasm,"\tmov eax, [eax]\n");
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
   }
 
   fprintf(fpasm,"\tadd eax, edx\n");
@@ -180,16 +177,16 @@ void sumar(FILE* fpasm, int es_variable_1, int es_variable_2){
 
 void restar(FILE* fpasm, int es_variable_1, int es_variable_2){
 
-  fprintf(fasm, ";restar\n");
+  fprintf(fpasm, ";restar\n");
 
   fprintf(fpasm,"\tpop dword edx\n");
   if(es_variable_2){
-    fprintf(fpasm,"\tmov edx, [edx]\n");
+    fprintf(fpasm,"\tmov dword edx, [edx]\n");
   }
 
   fprintf(fpasm,"\tpop dword eax\n");
   if(es_variable_1){
-    fprintf(fpasm,"\tmov eax, [eax]\n");
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
   }
 
   fprintf(fpasm,"\tsub eax, edx\n");
@@ -199,7 +196,7 @@ void restar(FILE* fpasm, int es_variable_1, int es_variable_2){
 
 void multiplicar(FILE* fpasm, int es_variable_1, int es_variable_2){
 
-  fprintf(fasm, ";multiplicar\n");
+  fprintf(fpasm, ";multiplicar\n");
 
   fprintf(fpasm,"\tpop dword edx\n");
   if(es_variable_2){
@@ -219,7 +216,7 @@ void multiplicar(FILE* fpasm, int es_variable_1, int es_variable_2){
 
 void dividir(FILE* fpasm, int es_variable_1, int es_variable_2){
 
-  fprintf(fasm, ";dividir\n");
+  fprintf(fpasm, ";dividir\n");
 
   fprintf(fpasm,"\tpop dword ecx\n");
   if(es_variable_2){
@@ -335,12 +332,12 @@ void igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,";igual\n");
 
   fprintf(fpasm,"\tpop dword edx\n");
-  if(es_variable_2){
+  if(es_variable2){
     fprintf(fpasm,"\tmov edx, [edx]\n");
   }
 
   fprintf(fpasm,"\tpop dword eax\n");
-  if(es_variable_1){
+  if(es_variable1){
     fprintf(fpasm,"\tmov eax, [eax]\n");
   }
 
@@ -363,12 +360,12 @@ void distinto(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,";distinto\n");
 
   fprintf(fpasm,"\tpop dword edx\n");
-  if(es_variable_2){
+  if(es_variable2){
     fprintf(fpasm,"\tmov edx, [edx]\n");
   }
 
   fprintf(fpasm,"\tpop dword eax\n");
-  if(es_variable_1){
+  if(es_variable1){
     fprintf(fpasm,"\tmov eax, [eax]\n");
   }
 
@@ -391,12 +388,12 @@ void menor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,";menor_igual\n");
 
   fprintf(fpasm,"\tpop dword edx\n");
-  if(es_variable_2){
+  if(es_variable2){
     fprintf(fpasm,"\tmov edx, [edx]\n");
   }
 
   fprintf(fpasm,"\tpop dword eax\n");
-  if(es_variable_1){
+  if(es_variable1){
     fprintf(fpasm,"\tmov eax, [eax]\n");
   }
 
@@ -419,12 +416,12 @@ void mayor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,";mayor_igual\n");
 
   fprintf(fpasm,"\tpop dword edx\n");
-  if(es_variable_2){
+  if(es_variable2){
     fprintf(fpasm,"\tmov edx, [edx]\n");
   }
 
   fprintf(fpasm,"\tpop dword eax\n");
-  if(es_variable_1){
+  if(es_variable1){
     fprintf(fpasm,"\tmov eax, [eax]\n");
   }
 
@@ -448,12 +445,12 @@ void menor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,";menor\n");
 
   fprintf(fpasm,"\tpop dword edx\n");
-  if(es_variable_2){
+  if(es_variable2){
     fprintf(fpasm,"\tmov edx, [edx]\n");
   }
 
   fprintf(fpasm,"\tpop dword eax\n");
-  if(es_variable_1){
+  if(es_variable1){
     fprintf(fpasm,"\tmov eax, [eax]\n");
   }
 
@@ -477,12 +474,12 @@ void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,";mayor\n");
 
   fprintf(fpasm,"\tpop dword edx\n");
-  if(es_variable_2){
+  if(es_variable2){
     fprintf(fpasm,"\tmov edx, [edx]\n");
   }
 
   fprintf(fpasm,"\tpop dword eax\n");
-  if(es_variable_1){
+  if(es_variable1){
     fprintf(fpasm,"\tmov eax, [eax]\n");
   }
 
@@ -530,8 +527,8 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
   if(es_variable){
     fprintf(fpasm,"\tpop dword eax\n");
     fprintf(fpasm,"\tmov eax, [eax]\n");
-    fprintf(fpasm,"\tpush dword _%s\n", nombre);
   }
+  fprintf(fpasm,"\tpush dword eax\n");
 
   if(tipo == ENTERO){
     fprintf(fpasm,"\tcall print_int\n");
@@ -542,8 +539,15 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
   fprintf(fpasm,"\tcall print_endofline\n");
 }
 
+/*
+void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta){
 
-void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
+  if(etiqueta == 1){
+    fprintf(fpasm, "\tcmp \n");
+  }
+
+}
+*/
 void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
 void ifthen_fin(FILE * fpasm, int etiqueta);
 void ifthenelse_fin_then( FILE * fpasm, int etiqueta);
