@@ -446,7 +446,7 @@ void mayor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,"\tmov eax, 0\n");
   fprintf(fpasm,"\tjmp _fin_mayor_igual%d\n", etiqueta);
 
-  fprintf(fpasm,"mayor_igual%d:\n", etiqueta);
+  fprintf(fpasm,"_mayor_igual%d:\n", etiqueta);
   fprintf(fpasm,"\tmov eax, 1\n");
 
   fprintf(fpasm,"_fin_mayor_igual%d:\n", etiqueta);
@@ -475,7 +475,7 @@ void menor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,"\tmov eax, 0\n");
   fprintf(fpasm,"\tjmp _fin_menor%d\n", etiqueta);
 
-  fprintf(fpasm,"menor%d:\n", etiqueta);
+  fprintf(fpasm,"_menor%d:\n", etiqueta);
   fprintf(fpasm,"\tmov eax, 1\n");
 
   fprintf(fpasm,"_fin_menor%d:\n", etiqueta);
@@ -504,7 +504,7 @@ void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta){
   fprintf(fpasm,"\tmov eax, 0\n");
   fprintf(fpasm,"\tjmp _fin_mayor%d\n", etiqueta);
 
-  fprintf(fpasm,"mayor%d:\n", etiqueta);
+  fprintf(fpasm,"_mayor%d:\n", etiqueta);
   fprintf(fpasm,"\tmov eax, 1\n");
 
   fprintf(fpasm,"_fin_mayor%d:\n", etiqueta);
@@ -567,10 +567,46 @@ void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
 void ifthen_fin(FILE * fpasm, int etiqueta);
 void ifthenelse_fin_then( FILE * fpasm, int etiqueta);
 void ifthenelse_fin( FILE * fpasm, int etiqueta);
-void while_inicio(FILE * fpasm, int etiqueta);
-void while_exp_pila (FILE * fpasm, int exp_es_variable, int etiqueta);
-void while_fin( FILE * fpasm, int etiqueta);
-void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, int exp_es_direccion);
+void while_inicio(FILE * fpasm, int etiqueta){
+
+  fprintf(fpasm,";while_inicio\n");
+
+  fprintf(fpasm,"_while_inicio%d:\n", etiqueta);
+
+}
+void while_exp_pila (FILE * fpasm, int exp_es_variable, int etiqueta){
+
+  fprintf(fpasm,";while_exp_pila\n");
+
+  fprintf(fpasm,"\tpop dword eax\n");
+  if(exp_es_variable){
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
+  }
+  fprintf(fpasm,"\tcmp eax, 0\n");
+  fprintf(fpasm,"\tje near _while_fin%d\n", etiqueta);
+}
+void while_fin( FILE * fpasm, int etiqueta){
+
+  fprintf(fpasm,";while_fin\n");
+
+  fprintf(fpasm,"\tjmp near _while_inicio%d\n", etiqueta);
+  fprintf(fpasm,"_while_fin%d:\n", etiqueta);
+}
+void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, int exp_es_direccion){
+
+  fprintf(fpasm,";escribir_elemento_vector\n");
+
+  fprintf(fpasm,"\tpop dword eax\n");
+  if(exp_es_direccion){
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
+  }
+  fprintf(fpasm,"\tcmp eax, 0\n");
+  fprintf(fpasm,"\tjl near error_indice_fuera_rango\n");
+  fprintf(fpasm,"\tcmp eax, %d\n", tam_max);
+  fprintf(fpasm,"\tjg near error_indice_fuera_rango\n");
+
+
+}
 void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc);
 void retornarFuncion(FILE * fd_asm, int es_variable);
 void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros);
