@@ -92,12 +92,14 @@ void escribir_fin(FILE* fpasm){
   fprintf(fpasm,"\tpush dword msj_error_div_0\n");
   fprintf(fpasm,"\tcall print_string\n");
   fprintf(fpasm,"\tadd esp, 4\n");
+  fprintf(fpasm,"\tcall print_endofline\n");
   fprintf(fpasm,"\tjmp near quit\n");
 
   fprintf(fpasm,"error_indice_fuera_rango:\n");
   fprintf(fpasm,"\tpush dword msj_error_ind_fuera_rango\n");
   fprintf(fpasm,"\tcall print_string\n");
   fprintf(fpasm,"\tadd esp, 4\n");
+  fprintf(fpasm,"\tcall print_endofline\n");
   fprintf(fpasm,"\tjmp near quit\n");
 }
 /*
@@ -554,19 +556,51 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
   fprintf(fpasm,"\tcall print_endofline\n");
 }
 
-/*
 void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta){
 
-  if(etiqueta == 1){
-    fprintf(fpasm, "\tcmp \n");
+  fprintf(fpasm,";ifthenelse_inicio\n");
+
+  fprintf(fpasm,"\tpop dword eax\n");
+  if(exp_es_variable){
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
   }
+  fprintf(fpasm,"\tcmp eax, 0\n");
+  fprintf(fpasm,"\tje near _before_else%d\n", etiqueta); //if no se cumple
 
 }
-*/
-void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
-void ifthen_fin(FILE * fpasm, int etiqueta);
-void ifthenelse_fin_then( FILE * fpasm, int etiqueta);
-void ifthenelse_fin( FILE * fpasm, int etiqueta);
+
+void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta){
+
+  fprintf(fpasm,";ifthen_inicio\n");
+
+  fprintf(fpasm,"\tpop dword eax\n");
+  if(exp_es_variable){
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
+  }
+  fprintf(fpasm,"\tcmp eax, 0\n");
+  fprintf(fpasm,"\tje near _if_not%d\n", etiqueta); //if no se cumple
+}
+
+void ifthen_fin(FILE * fpasm, int etiqueta){
+
+  fprintf(fpasm,";ifthen_fin\n");
+
+  fprintf(fpasm,"_if_not%d:\n", etiqueta);
+}
+void ifthenelse_fin_then( FILE * fpasm, int etiqueta){
+
+  fprintf(fpasm,";ifthenelse_fin_then\n");
+
+  fprintf(fpasm,"\tjmp near _after_else%d\n", etiqueta);
+  fprintf(fpasm,"_before_else%d:\n", etiqueta);
+  //se ha cumplido el if, y se ejecuta then pero no else
+}
+void ifthenelse_fin( FILE * fpasm, int etiqueta){
+
+  fprintf(fpasm,";ifthenelse_fin\n");
+
+  fprintf(fpasm,"_after_else%d:\n", etiqueta);
+}
 void while_inicio(FILE * fpasm, int etiqueta){
 
   fprintf(fpasm,";while_inicio\n");
@@ -603,7 +637,7 @@ void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, in
   fprintf(fpasm,"\tcmp eax, 0\n");
   fprintf(fpasm,"\tjl near error_indice_fuera_rango\n");
   fprintf(fpasm,"\tcmp eax, %d\n", tam_max);
-  fprintf(fpasm,"\tjg near error_indice_fuera_rango\n");
+  fprintf(fpasm,"\tjge near error_indice_fuera_rango\n");
 
 
 }
