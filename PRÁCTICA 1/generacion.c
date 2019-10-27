@@ -541,8 +541,8 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
 
   fprintf(fpasm,";escribir\n");
 
+  fprintf(fpasm,"\tpop dword eax\n");
   if(es_variable){
-    fprintf(fpasm,"\tpop dword eax\n");
     fprintf(fpasm,"\tmov dword eax, [eax]\n");
   }
   fprintf(fpasm,"\tpush dword eax\n");
@@ -641,11 +641,27 @@ void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, in
 
 
 }
-void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc);
-void retornarFuncion(FILE * fd_asm, int es_variable);
-void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros);
-void escribirVariableLocal(FILE* fpasm, int posicion_variable_local);
-void asignarDestinoEnPila(FILE* fpasm, int es_variable);
-void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable);
-void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos);
-void limpiarPila(FILE * fd_asm, int num_argumentos);
+void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc){
+
+}
+void retornarFuncion(FILE * fd_asm, int es_variable){
+
+}
+void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros){
+
+}
+void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
+
+}
+void asignarDestinoEnPila(FILE* fpasm, int es_variable){
+
+}
+void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
+
+}
+void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
+
+}
+void limpiarPila(FILE * fd_asm, int num_argumentos){
+  
+}
