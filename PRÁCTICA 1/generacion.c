@@ -641,27 +641,88 @@ void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, in
 
 
 }
+// 1
 void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc){
 
+  fprintf(fpasm,";declararFuncion\n");
+
+  fprintf(fpasm,"_%s:\n", nombre_funcion);
+  fprintf(fpasm,"\tpush ebp\n");
+  fprintf(fpasm,"\tmov ebp, esp\n");
+  fprintf(fpasm,"\tsub esp, 4*%d\n", num_var_loc);
+
 }
+// 6
 void retornarFuncion(FILE * fd_asm, int es_variable){
 
+  fprintf(fpasm,";retornarFuncion\n");
+
+  fprintf(fpasm,"\tpop dword eax\n");
+  if(es_variable){
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
+  }
+  fprintf(fpasm,"\tmov esp, ebp\n");
+  fprintf(fpasm,"\tpop ebp\n");
+  fprintf(fpasm,"\tret\n");
 }
+// 2 y 5
 void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros){
 
+  int valor_a_mult;
+
+  valor_a_sum = 4 * (1 + num_total_parametros - pos_parametro);
+
+  fprintf(fpasm,";escribirParametro\n");
+
+  fprintf(fpasm,"\tlea eax, [ebp + %d]\n", valor_a_sum);
+  fprintf(fpasm,"\tpush dword eax\n");
 }
+// 3
 void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
 
+  int valor_a_res;
+
+  valor_a_res = 4 * posicion_variable_local;
+
+  fprintf(fpasm,";escribirVariableLocal\n");
+
+  fprintf(fpasm,"\tlea eax, [ebp - %d]\n", valor_a_res);
+  fprintf(fpasm,"\tpush dword eax\n");
 }
+// 4
 void asignarDestinoEnPila(FILE* fpasm, int es_variable){
 
+  fprintf(fpasm,";asignarDestinoEnPila\n");
+
+  fprintf(fpasm,"\tpop dword ebx\n");
+  fprintf(fpasm,"\tpop dword eax\n");
+  if(es_variable){
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
+  }
+  fprintf(fpasm,"\tmov dword [ebx], eax\n");
+
+
 }
+// 7
 void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
 
+  fprintf(fpasm,";operandoEnPilaAArgumento\n");
+
+  if(es_variable){
+    fprintf(fpasm,"\tpop dword eax\n");
+    fprintf(fpasm,"\tmov dword eax, [eax]\n");
+    fprintf(fpasm,"\tpush dword eax\n");
+  }
 }
+// 8
 void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
 
+  fprintf(fpasm,";llamarFuncion\n");
+
+  fprintf(fpasm,"\tcall %s\n", nombre_funcion);
+  fprintf(fpasm,"\tadd esp, 4*%d\n", num_argumentos);
+  fprintf(fpasm,"\tpush dword eax\n");
 }
 void limpiarPila(FILE * fd_asm, int num_argumentos){
-  
+
 }

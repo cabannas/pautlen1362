@@ -20,7 +20,7 @@ int main (int argc, char ** argv)
   int auxArg;
   declararFuncion(fd_asm,"doble",1);
   //auxArg = arg; Asignacion de parametro a variable local. Solo hay un
-  parametro.
+  //parametro.
   escribirParametro(fd_asm,0,1);
   escribirVariableLocal(fd_asm,1);
   asignarDestinoEnPila(fd_asm,1);
