@@ -1,0 +1,15 @@
+Calculadora Flex
+----------------
+
+Cree un programa en Flex para hacer una calculadora con las siguientes operaciones:
+1. Suma (+)
+2. Resta (-)
+3. Multiplicación (*)
+4. División (/)
+5. Potencia (^)
+
+Ejemplos:
+Calcular:  4+5
+Resultado: 9
+Calcular:  5^3
+Resultado: 125

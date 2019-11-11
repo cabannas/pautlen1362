@@ -1,0 +1,65 @@
+Tabla de Símbolos
+-----------------
+
+1. Crear el fichero de salida, del siguiente fichero de entrada:
+ENTRADA 										SALIDA
+i   20												i
+j   30												j
+k   10												k
+j   5													j
+suma    -5										suma
+a   2													a
+j															j	5
+resta													resta -1
+cierre  -999									cierre
+resta   -3										resta
+a   3													a
+cierre  -999									cierre
+j															j	5
+k															k 10
+suma													suma -5
+
+
+2. Crear el fichero de entrada, del siguiente fichero de salida:
+
+SALIDA 												ENTRADA
+a															a 9
+b															b 6
+c															c 10
+xy														xy 2
+yx														yx 3
+-1	a													a 5
+-1	b													b 9
+c   10												c
+-1	xy												xy 7
+yx  3													yx
+
+
+3. Crear los ficheros de entrada y salida del siguiente programa ALFA:
+
+main {
+	int x, y[4];
+	function int Multiplicar(int a, int a)
+	{
+		int y;
+		return a * b;
+	}
+	scanf x;
+	printf Multiplicar(x, z);
+}
+
+
+ENTRADA 											SALIDA
+x 0														x
+y 0														y
+Multiplicar -1								Multiplicar
+a 0														a
+a 0 													-1 a
+y 0														y
+a 														a 0
+b 														b -1
+cierre -999										cierre
+x															x 0
+Multiplicar										Multiplicar -1
+x															x 0
+z															z -1
