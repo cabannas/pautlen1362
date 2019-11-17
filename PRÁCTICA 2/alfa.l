@@ -1,69 +1,64 @@
 %{
   #include <stdio.h>
+  #include "tokens.h"
 
 %}
+
 %option noyywrap
+
+DIGITO [0-9]
+LETRA [a-zA-Z]
+LETRAODIGITO[a-zA-Z0-9]
+
 %%
 
-"main" { printf("-> TOK_MAIN\n"); }
-"int" { printf("-> TOK_INT\n"); }
-"bool" { printf("-> TOK_BOOLEAN\n"); }
+"main" { return TOK_MAIN; }
+"int" { return TOK_INT; }
+"bool" { return TOK_BOOLEAN; }
+"array" { return TOK_ARRAY; }
+"function" { return TOK_FUNCTION; }
+"if" { return TOK_IF;}
+"else" { return TOK_ELSE; }
+"while" { return TOK_WHILE; }
+"scanf" { return TOK_SCANF; }
+"printf" { return TOK_PRINTF; }
+"return" { return TOK_RETURN; }
 
+";" { return TOK_PUNTOYCOMA; }
+"," { return TOK_COMA; }
+"(" { return TOK_PARENTESISIZQUIERDO; }
+")" { return TOK_PARENTESISDERECHO; }
+"[" { return TOK_CORCHETEIZQUIERDO; }
+"]" { return TOK_CORCHETEDERECHO; }
+"{" { return TOK_LLAVEIZQUIERDA; }
+"}" { return TOK_LLAVEDERECHA; }
+"==" { return TOK_IGUAL; }
+"=" { return TOK_ASIGNACION; }
+"+" { return TOK_MAS; }
+"-" { return TOK_MENOS; }
+"/" { return TOK_DIVISION; }
+"*" { return TOK_ASTERISCO; }
+"&&" { return TOK_AND; }
+"||" { return TOK_OR; }
+"!=" { return TOK_DISTINTO; }
+"!" { return TOK_NOT; }
+"<=" { return TOK_MENORIGUAL; }
+">=" { return TOK_MAYORIGUAL; }
+"<" { return TOK_MENOR; }
+">" { return TOK_MAYOR; }
 
-"array" { printf("-> TOK_ARRAY\n"); }                     ///////////////////////////////////////////////////OJAZO, POR CONFIRMAR
-"function" { printf("-> TOK_FUNCTION\n"); }               ///////////////////////////////////////////////////OJAZO, POR CONFIRMAR
+{LETRA}({LETRAODIGITO})* { return TOK_IDENTIFICADOR; }  // Cualquier combinacion de palabras y numeros
+{DIGITO}({DIGITO})* { return TOK_CONSTANTE_ENTERA; }  // Cualquier combinacion de numeros
 
-"if" { printf("-> TOK_IF\n"); }
-"else" { printf("-> TOK_ELSE\n"); }
-"while" { printf("-> TOK_WHILE\n"); }
-"scanf" { printf("-> TOK_SCANF\n"); }
-"printf" { printf("-> TOK_PRINTF\n"); }
-"return" { printf("-> TOK_RETURN\n"); }
+"true" { return TOK_TRUE; }
+"false" { return TOK_FALSE; }
 
+"\t" {}  // Ignoramos tabulacion
+"//" {}  // Ignoramos comentarios
+" " {}  // Ignoramos espacios
+"\n" {}  // Ignoramos saltos de linea
 
-
-";" { printf("-> TOK_PUNTOYCOMA\n"); }
-"," { printf("-> TOK_COMA\n"); }
-"(" { printf("-> TOK_PARENTESISIZQUIERDO\n"); }
-")" { printf("-> TOK_PARENTESISDERECHO\n"); }
-"[" { printf("-> TOK_CORCHETEIZQUIERDO\n"); }
-"]" { printf("-> TOK_CORCHETEDERECHO\n"); }
-"{" { printf("-> TOK_LLAVEIZQUIERDA\n"); }
-"}" { printf("-> TOK_LLAVEDERECHA\n"); }
-"=" { printf("-> TOK_ASIGNACION\n"); }
-"+" { printf("-> TOK_MAS\n"); }
-"-" { printf("-> TOK_MENOS\n"); }
-"/" { printf("-> TOK_DIVISION\n"); }
-"*" { printf("-> TOK_ASTERISCO\n"); }
-"&&" { printf("-> TOK_AND\n"); }
-"||" { printf("-> TOK_OR\n"); }
-"!" { printf("-> TOK_NOT\n"); }
-"==" { printf("-> TOK_IGUAL\n"); }
-"!=" { printf("-> TOK_DISTINTO\n"); }
-"<=" { printf("-> TOK_MENORIGUAL\n"); }
-">=" { printf("-> TOK_MAYORIGUAL\n"); }
-"<" { printf("-> TOK_MENOR\n"); }
-">" { printf("-> TOK_MAYOR\n"); }
-
-
-
-"id" { printf("-> TOK_IDENTIFICADOR\n"); }                ///////////////////////////////////////////////////OJAZO, POR CONFIRMAR
-
-
-
-"const int" { printf("-> TOK_CONSTANTE_ENTERA\n"); }      ///////////////////////////////////////////////////OJAZO, POR CONFIRMAR
-
-"true" { printf("-> TOK_TRUE\n"); }
-"false" { printf("-> TOK_FALSE\n"); }
-
-
-
-"error" { printf("-> TOK_ERROR\n"); }                     ///////////////////////////////////////////////////OJAZO, POR CONFIRMAR
-
-
+. { return TOK_ERROR; }  // Todo lo demas se consideran errores morfologicos
 
 
 %%
-int main() {
-return yylex();
-}
