@@ -47,18 +47,18 @@ LETRAODIGITO[a-zA-Z0-9]
 "<" { return TOK_MENOR; }
 ">" { return TOK_MAYOR; }
 
-{LETRA}({LETRAODIGITO})* { return TOK_IDENTIFICADOR; }  // Cualquier combinacion de palabras y numeros
-{DIGITO}({DIGITO})* { return TOK_CONSTANTE_ENTERA; }  // Cualquier combinacion de numeros
+{LETRA}({LETRAODIGITO})* { return TOK_IDENTIFICADOR; }  /* Cualquier combinacion de palabras y numeros */
+{DIGITO}({DIGITO})* { return TOK_CONSTANTE_ENTERA; }  /* Cualquier combinacion de numeros */
 
 "true" { return TOK_TRUE; }
 "false" { return TOK_FALSE; }
 
-"\t" {}  // Ignoramos tabulacion
-"//" {}  // Ignoramos comentarios
-" " {}  // Ignoramos espacios
-"\n" {}  // Ignoramos saltos de linea
+"\t" {}  /* Ignoramos tabulacion */
+"//" { return TOK_COMENTARIO; }
+" " {}  /* Ignoramos espacios */
+"\n" { return TOK_FIN_DE_LINEA; }
 
-. { return TOK_ERROR; }  // Todo lo demas se consideran errores morfologicos
+. { return TOK_ERROR; }  /* Todo lo demas se consideran errores morfologicos */
 
 
 %%

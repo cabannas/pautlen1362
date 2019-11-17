@@ -3,33 +3,34 @@
 
 #include "tokens.h"
 
+extern FILE * yyin; /* Fichero de entrada para yylex */
+extern FILE * yyout; /* Fichero de salida para yylex */
+
+
+extern int yylex(); /*Ejecutamos yylex */
+
+extern char * yytext;
+extern int yyleng;
+
+
 int main(int argc, char * argv[]) {
-
-  FILE * yyin;  // Fichero de entrada para yylex
-  FILE * yyout;  // Fichero de salida para yylex
-
-  int yylex(); // Ejecutamos yylex
-
-  char * yytext;
-  int yyleng;
 
   /* Variables de control */
   int tok = 1;
   int fil =1, col = 1;
 
 
-  // Abrimos los ficheros de entrada y salida de yylex
+  /* Abrimos los ficheros de entrada y salida de yylex*/
   yyin = fopen(argv[1], "r");
 
-  yyout = fopen(argv[2]. "w");
+  yyout = fopen(argv[2], "w");
 
-  // Analizamos el fichero de entrada con un bucle while y escribimos en el
-  // fichero de salida
+  /*Analizamos el fichero de entrada con un bucle while y escribimos en el fichero de salida*/
 
   while(tok != 0){
 
-    // Recibimos el token del yylex
-    tok = yylex()
+    /*Recibimos el token del yylex*/
+    tok = yylex();
 
     switch(tok){
 
@@ -234,8 +235,8 @@ int main(int argc, char * argv[]) {
 
       /* Los fin de linea los obviamos */
       case TOK_FIN_DE_LINEA:
-        fil++;  // Aumentamos la fila
-        col = 1;  // Reseteamos la columna
+        fil++;  /* Aumentamos la fila */
+        col = 1;  /* Reseteamos la columna */
         break;
 
       /* Los comentarios los obviamos */
@@ -243,8 +244,8 @@ int main(int argc, char * argv[]) {
         while(tok != TOK_FIN_DE_LINEA){
           tok = yylex();
         }
-        fil++;  // Aumentamos la fila
-        col = 1;  // Reseteamos la columna
+        fil++;  /* Aumentamos la fila */
+        col = 1;  /* Reseteamos la columna */
         break;
 
       default:
@@ -254,13 +255,7 @@ int main(int argc, char * argv[]) {
       printf("****Error en [lin %d, col %d]: simbolo no permitido (%s)\n", fil, col, yytext);
       return -1;
     }
-
-    return 0;
   }
 
-
-
-
-
-
+  return 0;
 }
