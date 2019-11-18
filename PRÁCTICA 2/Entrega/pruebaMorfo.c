@@ -3,6 +3,8 @@
 
 #include "tokens.h"
 
+/* Sin los extern no funciona */
+
 extern FILE * yyin; /* Fichero de entrada para yylex */
 extern FILE * yyout; /* Fichero de salida para yylex */
 
