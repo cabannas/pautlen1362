@@ -974,7 +974,7 @@ YY_RULE_SETUP
 case 38:
 YY_RULE_SETUP
 #line 56 "alfa.l"
-{}  /* Ignoramos tabulacion */
+{ return TOK_TABULADOR; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
@@ -984,7 +984,7 @@ YY_RULE_SETUP
 case 40:
 YY_RULE_SETUP
 #line 58 "alfa.l"
-{}  /* Ignoramos espacios */
+{ return TOK_ESPACIO; }
 	YY_BREAK
 case 41:
 /* rule 41 can match eol */

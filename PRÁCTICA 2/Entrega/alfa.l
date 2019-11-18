@@ -53,9 +53,9 @@ LETRAODIGITO[a-zA-Z0-9]
 "true" { return TOK_TRUE; }
 "false" { return TOK_FALSE; }
 
-"\t" {}  /* Ignoramos tabulacion */
+"\t" { return TOK_TABULADOR; }
 "//" { return TOK_COMENTARIO; }
-" " {}  /* Ignoramos espacios */
+" " { return TOK_ESPACIO; }
 "\n" { return TOK_FIN_DE_LINEA; }
 
 . { return TOK_ERROR; }  /* Todo lo demas se consideran errores morfologicos */

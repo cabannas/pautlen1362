@@ -55,10 +55,10 @@ Descripci�n: Definici�n de tokens para el lenguaje ALFA
 #define TOK_FALSE               402
 
 /* Caracteres Especiales */
-#define TOK_TABULADOR	        	500
-#define TOK_COMENTARIO		      501
-#define TOK_ESPACIO 		        502
-#define TOK_FIN_DE_LINEA		    503
+#define TOK_TABULADOR	        500
+#define TOK_COMENTARIO		501
+#define TOK_ESPACIO 		502
+#define TOK_FIN_DE_LINEA	503
 
 
 /* Errores */
