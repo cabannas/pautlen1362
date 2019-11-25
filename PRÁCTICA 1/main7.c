@@ -39,7 +39,7 @@ int main (int argc, char ** argv)
   //Llamamos a la funcion que tiene 1 argumento. Estamos dando un salto a la
   //etiqueta. Primero apilamos el parametro.
   operandoEnPilaAArgumento(fd_asm,1);
-  llamarFuncion(fd_asm,"_doble",1);
+  llamarFuncion(fd_asm,"doble",1);
   //Imprimimos el resultado de la funcion.
   escribir(fd_asm,0,ENTERO);
   escribir_fin(fd_asm);

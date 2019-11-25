@@ -718,7 +718,7 @@ void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
 
   fprintf(fd_asm,";llamarFuncion\n");
 
-  fprintf(fd_asm,"\tcall %s\n", nombre_funcion);
+  fprintf(fd_asm,"\tcall _%s\n", nombre_funcion);
   limpiarPila(fd_asm, num_argumentos);
   fprintf(fd_asm,"\tpush dword eax\n");
 }
