@@ -4,9 +4,6 @@
 #include "tabla_hash.h"
 
 
-
-
-
 INFO_SIMBOLO *crear_info_simbolo(const char *lexema, CATEGORIA categ, TIPO tipo, CLASE clase, int adic1, int adic2){
 
   INFO_SIMBOLO * info_sim;
@@ -191,24 +188,92 @@ unsigned long hash(const char *str){
 
 INFO_SIMBOLO *buscar_simbolo(const TABLA_HASH *th, const char *lexema){
 
+  NODO_HASH * nodo_aux;
+  int indice;
 
+  /* para calcular la posicion */
+  indice = hash(lexema) % th->tam;
 
+  for (nodo_aux = th->tabla[indice], nodo_aux && (!nodo_aux->info || strcmp(nodo_aux->info->lexema, lexema)), nodo_aux = nodo_aux->siguiente);
 
-
-
+  /*Control de errores de el nodo auxiliar*/
+  if(nodo_aux != NULL){
+    return nodo_aux->info;
+  }
+  else {
+    return NULL;
+  }
 }
 
 STATUS insertar_simbolo(TABLA_HASH *th, const char *lexema, CATEGORIA categ, TIPO tipo, CLASE clase, int adic1, int adic2){
 
+  int indice;
+  INFO_SIMBOLO * info_sim;
+  NODO_HASH * nodo_aux = NULL;
 
 
 
+
+  /* Primero buscamos el simbolo */
+  if(buscar_simbolo(th, lexema))
+  {
+      return ERR;
+  }
+
+  /* para calcular la posicion */
+  indice = hash(lexema) % th->tam;
+
+  /*Reservamos memoria para el nodo info_sim*/
+  info_sim = crear_info_simbolo(lexema, categ, tipo, clase, adic1, adic2);
+
+  /*Control de errores para info_sim*/
+  if(info_sim == NULL){
+      return ERR;
+  }
+
+  nodo_aux = crear_nodo(info_sim);
+
+  /*Control de errores para el nodo_aux*/
+  if (nodo_aux == NULL) {
+      liberar_info_simbolo(info_sim);
+      return ERR;
+  }
+
+  /*Insertamos el simbolo*/
+  nodo_aux->siguiente = th->tabla[indice];
+  th->tabla[indice] = nodo_aux;
+  return OK;
 
 }
 
 void borrar_simbolo(TABLA_HASH *th, const char *lexema){
 
+  NODO_HASH * nodo_aux;
+  NODO_HASH * nodo_anterior = NULL;
+  int indice;
 
 
+  /* calculamos la posicion hash */
+  indice = hash(lexema) % th->tam;
 
+  /* Buscamos el nodo con esa posicion*/
+  for(nodo_aux = th->tabla[indice], nodo_aux && (!nodo_aux->info || strcmp(nodo_aux->info->lexema, lexema)), nodo_aux = nodo_aux->siguiente){
+    nodo_anterior = nodo_aux;
+  }
+
+  /* Control de errores, existencia del nodo */
+  if(nodo_aux == NULL){
+    return;
+  }
+  /* Control de errores, existencia del nodo anterior */
+  if(nodo_anterior ==  NULL){
+      /* borramos el primer nodo */
+      th->tabla[indice] = nodo_aux->siguiente;
+  }else{
+      /* borramos cualquiero otro nodo */
+      nodo_anterior->siguiente = nodo_aux->siguiente;
+  }
+  /*Liberamos finalmente el nodo*/
+  liberar_nodo(nodo_aux);
+  return;
 }
