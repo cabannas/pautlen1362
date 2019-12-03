@@ -1,0 +1,21 @@
+Incluir en la calculadora la definición de las variables x, y y z, con la siguiente sintaxis:
+   
+   <variable>=<numero><enter>
+
+Ejemplos: 
+x=20
+y=-5
+x+y
+Result: 15
+
+1. Modificar el fichero calc.l (crear las reglas y variables necesarias) para que realice el 
+   análisis morfológico. (valor 1 punto)
+
+2. Modificar el fichero calc.y para incluir la regla de definición anterior. Además, que realice el 
+   análisis sintáctico. (valor 1 punto)
+
+3. Incluir el análisis sintáctico (valor 3 punto): 
+   a. Incluya las variables necesarias para la declaración de variables.
+   b. Determine la lista de errores sintácticos posibles.  
+
+   
