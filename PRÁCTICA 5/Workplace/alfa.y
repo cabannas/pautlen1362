@@ -302,33 +302,129 @@ fprintf(yyout, ";R23:\t<parametros_funcion> ::= <parametro_funcion> <resto_param
 resto_parametros_funcion: TOK_PUNTOYCOMA parametro_funcion resto_parametros_funcion {fprintf(yyout, ";R25:\t<resto_parametros_funcion> ::= ; <parametro_funcion> <resto_parametros_funcion> \n");};
 	| {fprintf(yyout, ";R26:\t<resto_parametros_funcion> ::= \n");};
 
-parametro_funcion: tipo identificador {
+parametro_funcion: tipo idpf {
 fprintf(yyout, ";R27:\t<parametro_funcion> ::= <tipo> <identificador> \n");};
 
-declaraciones_funcion: declaraciones {fprintf(yyout, ";R28:\t<declaraciones_funcion> ::= <declaraciones> \n");};
+idpf: TOK_IDENTIFICADOR {
+if (DeclararVariableLocal(tabla_local, $1.lexema,PARAMETRO, tipo_actual, ESCALAR, adicional1, pos_parametros_actual) == ERR) {
+	printf("****Error semantico en lin %d: Declaracion dupliacada", linea);
+	return 0;
+}
+
+  adicional1++;
+  pos_parametros_actual++;
+  num_parametros_actual++;
+};
+
+declaraciones_funcion: declaraciones {fprintf(yyout, ";R28:\t<declaraciones_funcion> ::= <declaraciones> \n");}
 	| {fprintf(yyout, ";R29:\t<declaraciones_funcion> ::= \n");};
 
-sentencias: sentencia {fprintf(yyout, ";R30:\t<sentencias> ::= <sentencia> \n");};
+sentencias: sentencia {fprintf(yyout, ";R30:\t<sentencias> ::= <sentencia> \n");}
 	| sentencia sentencias {fprintf(yyout, ";R31:\t<sentencias> ::= <sentencia> <sentencias> \n");};
 
-sentencia: sentencia_simple TOK_PUNTOYCOMA {fprintf(yyout, ";R32:\t<sentencia> ::= <sentencia_simple> ; \n");};
+sentencia: sentencia_simple TOK_PUNTOYCOMA {fprintf(yyout, ";R32:\t<sentencia> ::= <sentencia_simple> ; \n");}
 	| bloque {fprintf(yyout, ";R33:\t<sentencia> ::= <bloque> \n");};
 
-sentencia_simple: asignacion {fprintf(yyout, ";R34:\t<sentencia_simple> ::= <asignacion> \n");};
-	| lectura {fprintf(yyout, ";R35:\t<sentencia_simple> ::= <lectura> \n");};
-	| escritura {fprintf(yyout, ";R36:\t<sentencia_simple> ::= <escritura> \n");};
+sentencia_simple: asignacion {fprintf(yyout, ";R34:\t<sentencia_simple> ::= <asignacion> \n");}
+	| lectura {fprintf(yyout, ";R35:\t<sentencia_simple> ::= <lectura> \n");}
+	| escritura {fprintf(yyout, ";R36:\t<sentencia_simple> ::= <escritura> \n");}
 	| retorno_funcion {fprintf(yyout, ";R38:\t<sentencia_simple> ::= <retorno_funcion> \n");};
 
-bloque: condicional {fprintf(yyout, ";R40:\t<bloque> ::= <condicional> \n");};
+bloque: condicional {fprintf(yyout, ";R40:\t<bloque> ::= <condicional> \n");}
 	| bucle {fprintf(yyout, ";R41:\t<bloque> ::= <bucle> \n");};
 
-asignacion: identificador TOK_ASIGNACION exp {fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp> \n");};
- | elemento_vector TOK_ASIGNACION exp {fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp> \n");};
+asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp {
+  if (ambito_actual == GLOBAL) {
+	valor = busquedaGlobal($1.lexema, tabla_global);
+  }else {
+	valor = busquedaLocal($1.lexema, tabla_global,tabla_local);
+  }
+  if(valor == NULL){
+	printf("****Error semantico en lin %d: Acceso a variable no declarada (%s)\n", linea, $1.lexema);
+	return 0;
+  }
+  if(valor->tipo != $3.tipo || valor->clase == VECTOR || valor->categoria == FUNCION ){
+	printf("****Error semantico en lin %d: Asignacion incompatible\n", linea);
+	return 0;
+  }
 
-elemento_vector: identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {fprintf(yyout, ";R48:\t<elemento_vector> ::= <identificador> [ <exp> ] \n");};
 
-condicional: TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> } \n");};
-	| TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA TOK_ELSE TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {fprintf(yyout, ";R51:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> } \n");};
+if(valor->categoria == PARAMETRO){
+	asignar_parametro(fpasm, num_parametros_actual, valor->adicional2, $3.es_direccion);
+}
+else if(valor->adicional2 == 0){
+	asignar_ident(fpasm, $1.lexema, $3.es_direccion);
+}
+else {
+	asignar_local(fpasm, valor->adicional2, $3.es_direccion);
+}
+
+  fprintf(yyout, ";R43:\t<asignacion> ::= <identificador> = <exp> \n");}
+  | elemento_vector TOK_ASIGNACION exp {
+
+  if($1.tipo != $3.tipo){
+	printf("****Error semantico en lin %d: Asignacion no compatible\n", linea);
+	return 0;
+  }
+
+  asignar_vector(fpasm, $3.es_direccion);
+  fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp> \n");};
+
+elemento_vector: TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {
+  if (ambito_actual == GLOBAL) {
+	valor = busquedaGlobal($1.lexema, tabla_global);
+  }else {
+	valor = busquedaLocal($1.lexema, tabla_global,tabla_local);
+  }
+  if(valor == NULL){
+	printf("****Error semantico en lin %d: Acceso a variable sin declarar (%s)\n", linea, $1.lexema);
+	return 0;
+  }
+  if(valor->clase != VECTOR){
+	printf("****Error semantico en lin %d: Indexacion de una variable que no es de tipo vector (%s)\n", linea, $1.lexema);
+	return 0;
+  }
+  if($3.tipo != ENTERO){
+	printf("****Error semantico en lin %d: El indice en una indexacion debe ser de tipo entero (%s)\n", linea, $1.lexema);
+	return 0;
+  }
+  $$.es_direccion = 1;
+  $$.tipo = valor->tipo;
+
+  control_errores_vector(fpasm, $1.lexema, $3.es_direccion , valor->adicional1);
+  fprintf(yyout, ";R48:\t<elemento_vector> ::= <identificador> [ <exp> ] \n");};
+
+condicional:  if_exp sentencias TOK_LLAVEDERECHA {
+
+  fprintf(fpasm, "\nfin_si%d:\n", $1.etiqueta);
+  fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> } \n");}
+
+  | if_exp_sentencias TOK_ELSE TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {
+    fprintf(fpasm, "\nfin_sino%d:\n", $1.etiqueta);
+    fprintf(yyout, ";R51:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> } \n");
+  };
+
+if_exp: TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA {
+  if($3.tipo != BOOLEANO){
+    printf("****Error semantico en lin %d: Condicional sin elemento booleano\n", linea);
+    return 0;
+  }
+  $$.etiqueta = etiqueta ++;
+
+  abrir_if(fpasm, $$.etiqueta, $3.es_direccion);
+};
+
+
+if_exp_sentencias: if_exp sentencias TOK_LLAVEDERECHA {
+
+  $$.etiqueta = $1.etiqueta;
+
+  fprintf(fpasm, "\n\tjmp near fin_sino%d\n", $1.etiqueta);
+  fprintf(fpasm, "\nfin_si%d:\n", $1.etiqueta);
+};
+
+
+##############################################################RETOMAR DESDE AQUI HASTA ABAJO ################################################################
 
 bucle: TOK_WHILE TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {fprintf(yyout, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> } \n");};
 
