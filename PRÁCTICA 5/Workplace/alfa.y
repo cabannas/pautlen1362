@@ -156,7 +156,7 @@ TIPO tipo_retorno_funcion;
 %start programa
 
 %%
-programa: abrir_ambitos TOK_MAIN TOK_LLAVEIZQUIERDA declaraciones funciones sentencias TOK_LLAVEDERECHA {fprintf(yyout, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> } \n");};
+programa: abrir_ambitos TOK_MAIN TOK_LLAVEIZQUIERDA declaraciones escrituraTS funciones escritura_inicio_main sentencias TOK_LLAVEDERECHA cerrar_ambitos {fprintf(yyout, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> } \n");};
 
 abrir_ambitos: {
 
@@ -166,6 +166,19 @@ abrir_ambitos: {
 	escribir_subseccion_data(fpasm);
 	escribir_cabecera_bss(fpasm);
 }
+
+escrituraTS:{
+  escribir_segmento_codigo(fpasm);};
+
+escritura_inicio_main:{escribir_inicio_main(fpasm);};
+
+cerrar_ambitos:{
+	if(tabla_local){
+		liberar_tabla(tabla_local);
+	}
+	liberar_tabla(tabla_global);
+	escribir_fin(fpasm);
+};
 
 declaraciones: declaracion {fprintf(yyout, ";R2:\t<declaraciones> ::= <declaracion> \n");};
 	| declaracion declaraciones {fprintf(yyout, ";R3:\t<declaraciones> ::= <declaracion> <declaraciones> \n");};
@@ -187,10 +200,36 @@ clase: clase_escalar {
 
 clase_escalar: tipo {fprintf(yyout, ";R9:\t<clase_escalar> ::= <tipo> \n");};
 
-tipo: TOK_INT {fprintf(yyout, ";R10:\t<tipo> ::= int \n");};
-	| TOK_BOOLEAN {fprintf(yyout, ";R11:\t<tipo> ::= boolean \n");};
+tipo: TOK_INT {
 
-clase_vector: TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO constante_entera TOK_CORCHETEDERECHO {fprintf(yyout, ";R15:\tarray <tipo> [ <constante_entera> ] \n");};
+    tipo_actual=ENTERO;
+    fprintf(yyout, ";R10:\t<tipo> ::= int \n");
+  }
+	|TOK_BOOLEAN {
+
+    tipo_actual=BOOLEANO;
+    fprintf(yyout, ";R11:\t<tipo> ::= boolean \n");
+  };
+
+
+######################################################### ANDARSE CON OJO CON CLASE VECTOR #############################################################
+
+
+clase_vector: TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO TOK_CONSTANTE_ENTERA TOK_CORCHETEDERECHO {
+
+    tamano_vector_actual = $4.valor_entero;
+
+    if(tamano_vector_actual>MAX_TAMANIO_VECTOR || tamano_vector_actual < 1){
+      printf("****Error semantico en lin %d: El tamano del vector <%s> excede los limites permitidos (1,64).\n",linea, nombre_vector_actual);
+      return 0;
+    }
+
+    fprintf(yyout, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ] \n");
+  };
+
+
+######################################################### ANDARSE CON OJO CON CLASE VECTOR #############################################################
+
 
 identificadores: identificador {fprintf(yyout, ";R18:\t<identificadores> ::= <identificador> \n");};
 	| identificador TOK_COMA identificadores {fprintf(yyout, ";R19:\t<identificadores> ::= <identificador> , <identificadores> \n");};
@@ -198,15 +237,73 @@ identificadores: identificador {fprintf(yyout, ";R18:\t<identificadores> ::= <id
 funciones: funcion funciones {fprintf(yyout, ";R20:\t<funciones> ::= <funcion> <funciones> \n");};
 	| {fprintf(yyout, ";R21:\t<funciones> ::= \n");};
 
-funcion: TOK_FUNCTION tipo identificador TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion sentencias TOK_LLAVEDERECHA {fprintf(yyout, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> } \n");};
+  ######################################################### MIRAR SI HAY QUE CAMBIAR LOS PRINTF #############################################################
 
-parametros_funcion: parametro_funcion resto_parametros_funcion {fprintf(yyout, ";R23:\t<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion> \n");};
+funcion: fn_declaracion sentencias TOK_LLAVEDERECHA {
+
+  ambito_actual=GLOBAL;
+  valor = busquedaGlobal($1.lexema, tabla_global);
+  valor->adicional1 = n_parametros_actual;
+
+  if(fn_return==0){
+    printf("****Error semantico en lin %d: Funcion %s sin sentencia de retorno\n", linea, $1.lexema);
+    return 0;
+  }
+  fprintf(yyout, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> } \n");
+  };
+
+fn_declaracion: fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion{
+
+  valor = busquedaGlobal($1.lexema, tabla_global);
+  valor->adicional1=n_parametros_actual;
+  strcpy($$.lexema, $1.lexema);
+
+  fprintf(fpasm, "\n_%s:\n", $1.lexema);
+  fprintf(fpasm, "\tpush ebp\n");
+  fprintf(fpasm, "\tmov ebp, esp\n");
+  fprintf(fpasm, "\tsub esp, 4*%d\n", num_variables_locales_actual);
+
+ };
+
+fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR {
+
+  valor = busquedaGlobal($3.lexema, tabla_global);
+
+  if(valor){
+    printf("****Error semantico en lin %d: Declaracion dupliacada", linea);
+    return 0;
+  }
+
+  if(DeclararFuncion(tabla_global, tabla_local, $3.lexema, FUNCION, tipo_actual, ESCALAR, adicional1, 0)==OK){
+    ambito_actual=LOCAL;
+  }
+
+  adicional1++;
+
+  n_variables_locales_actual = 0;
+  pos_variable_local_actual = 1;
+  n_parametros_actual = 0;
+  pos_parametros_actual = 0;
+  fn_return = 0;
+
+  strcpy($$.lexema, $3.lexema);
+  es_funcion=1;
+
+  tipo_return=tipo_actual;
+
+  strcpy(nombre_funcion_actual, $3.lexema);
+};
+
+
+parametros_funcion: parametro_funcion resto_parametros_funcion {
+fprintf(yyout, ";R23:\t<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion> \n");};
 	| {fprintf(yyout, ";R24:\t<parametros_funcion> ::= \n");};
 
 resto_parametros_funcion: TOK_PUNTOYCOMA parametro_funcion resto_parametros_funcion {fprintf(yyout, ";R25:\t<resto_parametros_funcion> ::= ; <parametro_funcion> <resto_parametros_funcion> \n");};
 	| {fprintf(yyout, ";R26:\t<resto_parametros_funcion> ::= \n");};
 
-parametro_funcion: tipo identificador {fprintf(yyout, ";R27:\t<parametro_funcion> ::= <tipo> <identificador> \n");};
+parametro_funcion: tipo identificador {
+fprintf(yyout, ";R27:\t<parametro_funcion> ::= <tipo> <identificador> \n");};
 
 declaraciones_funcion: declaraciones {fprintf(yyout, ";R28:\t<declaraciones_funcion> ::= <declaraciones> \n");};
 	| {fprintf(yyout, ";R29:\t<declaraciones_funcion> ::= \n");};

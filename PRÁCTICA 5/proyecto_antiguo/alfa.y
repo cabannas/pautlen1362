@@ -828,7 +828,7 @@ identificador: TOK_IDENTIFICADOR {
 		return 0;
 	}
 	/*GENERACION DE CODIGO*/
-	
+
 	if(es_funcion == 0){
 		declarar_variable(fpasm, $1.lexema, clase_actual, tamanio_vector_actual);
 		dato->clase = clase_actual;
@@ -843,10 +843,10 @@ identificador: TOK_IDENTIFICADOR {
 			printf("****Error semantico en lin %d: Variable local de tipo no escalar.\n", linea);
 			return 0;
 		}
-		
+
 		dato->tipo = tipo_actual;
 		dato->clase = clase_actual;
-		dato->adicional2 = pos_variable_local_actual;	
+		dato->adicional2 = pos_variable_local_actual;
 		num_variables_locales_actual++;
 		pos_variable_local_actual++;
 	}
