@@ -639,8 +639,11 @@ void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, in
   fprintf(fpasm,"\tcmp eax, %d\n", tam_max);
   fprintf(fpasm,"\tjge near error_indice_fuera_rango\n");
 
-
+  fprintf(fpasm,"\tmov dword edx, _%s\n", nombre_vector);
+  fprintf(fpasm,"\tlea eax, [edx + eax *4]\n");
+  fprintf(fpasm,"\tpush dword eax\n");
 }
+
 void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc){
 
   fprintf(fd_asm,";declararFuncion\n");

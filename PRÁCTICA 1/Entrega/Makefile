@@ -12,6 +12,8 @@ main6: main6.c generacion.c generacion.h
 	gcc -o main6 main6.c generacion.c generacion.h
 main7: main7.c generacion.c generacion.h
 	gcc -o main7 main7.c generacion.c generacion.h
+main12: main12.c generacion.c generacion.h
+	gcc -o main12 main12.c generacion.c generacion.h
 clean:
 	rm -f main1 ej1 ej1.o ej1.asm
 	rm -f main2 ej2 ej2.o ej2.asm
@@ -20,3 +22,4 @@ clean:
 	rm -f main5 ej5 ej5.o ej5.asm
 	rm -f main6 ej6 ej6.o ej6.asm
 	rm -f main7 ej7 ej7.o ej7.asm
+	rm -f main12 ej12 ej12.o ej12.asm
