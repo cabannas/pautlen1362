@@ -424,7 +424,7 @@ if_exp_sentencias: if_exp sentencias TOK_LLAVEDERECHA {
 };
 
 
-##############################################################RETOMAR DESDE AQUI HASTA ABAJO ################################################################
+############################################################## RETOMAR DESDE AQUI HASTA ABAJO ################################################################
 
 bucle: TOK_WHILE TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {fprintf(yyout, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> } \n");};
 
