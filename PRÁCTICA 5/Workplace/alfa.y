@@ -423,16 +423,69 @@ if_exp_sentencias: if_exp sentencias TOK_LLAVEDERECHA {
   fprintf(fpasm, "\nfin_si%d:\n", $1.etiqueta);
 };
 
+##############################################################################################################################
+
+bucle: while_exp sentencias TOK_LLAVEDERECHA {
+
+  fprintf(fpasm, "\n\n\tjmp near inicio_while%d\n", $1.etiqueta);
+  fprintf(fpasm, "\nfin_while%d:\n", $1.etiqueta);
+  fprintf(yyout, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> } \n");
+};
+
+lectura: TOK_SCANF TOK_IDENTIFICADOR {
+
+  if(ambito_actual == GLOBAL){
+    valor = busquedaGlobal($2.lexema, tabla_global);
+  }else{
+    valor = busquedaLocal($2.lexema, tabla_global, tabla_local);
+  }
+
+  if(valor == NULL){
+  		printf("****Error semantico en lin %d: Acceso a variable sin declarar (%s).\n", linea, $2.lexema);
+  		return 0;
+  }
+
+  /*Comprobaciones semanticas*/
+  if(valor->categoria == FUNCION){
+    printf("****Error semantico en lin %d: Asignacion no compatible.\n", linea);
+    return 0;
+  }
+  if(valor->clase == VECTOR){
+    printf("****Error semantico en lin %d: Asignacion no compatible.\n", linea);
+    return 0;
+  }
+
+	if(valor->categoria == PARAMETRO){
+		leer_parametro(fpasm, valor->tipo, num_parametros_actual, valor->adicional2);
+	} else if(valor->adicional2 == 0){
+		leer(fpasm, valor->lexema, valor->tipo);
+	} else{
+		leer_local(fpasm, valor->tipo, valor->adicional2);
+	}
+
+  fprintf(yyout, ";R54:\t<lectura> ::= scanf <identificador> \n");
+};
+
+escritura: TOK_PRINTF exp {
+
+  escribir(fpasm, $2.es_direccion, $2.tipo);
+  fprintf(yyout, ";R56:\t<escritura> ::= printf <exp> \n");
+};
+
+retorno_funcion: TOK_RETURN exp {
+
+  if((($2.es_direccion != 1) && ($2.es_direccion != 0)) || $2.tipo != tipo_return){
+  	printf("****Error semantico en lin %d: Sentencia de retorno fuera de una función.\n", linea);
+  	return 0;
+  }
+
+  retorno_funcion(fpasm, $2.es_direccion);
+  fn_return++;
+  fprintf(yyout, ";R61:\t<retorno_funcion> ::= return <exp> \n");
+};
 
 ############################################################## RETOMAR DESDE AQUI HASTA ABAJO ################################################################
 
-bucle: TOK_WHILE TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {fprintf(yyout, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> } \n");};
-
-lectura: TOK_SCANF identificador {fprintf(yyout, ";R54:\t<lectura> ::= scanf <identificador> \n");};
-
-escritura: TOK_PRINTF exp {fprintf(yyout, ";R56:\t<escritura> ::= printf <exp> \n");};
-
-retorno_funcion: TOK_RETURN exp {fprintf(yyout, ";R61:\t<retorno_funcion> ::= return <exp> \n");};
 
 exp: exp TOK_MAS exp {fprintf(yyout, ";R72:\t<exp> ::= <exp> + <exp> \n");};
 	| exp TOK_MENOS exp {fprintf(yyout, ";R73:\t<exp> ::= <exp> - <exp> \n");};
