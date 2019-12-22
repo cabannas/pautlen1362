@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "alfa.h"
+#include "tabla_hash.h"
+#include "tabla_simbolos.h"
 #include "generacion.h"
 #include "y.tab.h"
-#include "tablaSimbolos.h"
-#include "alfa.h"
-#include "tablaHash.h"
 
 extern FILE * fpasm;
 extern FILE * yyout;
@@ -19,8 +19,6 @@ TABLA_HASH * tabla_global = NULL;
 TABLA_HASH * tabla_local = NULL;
 
 INFO_SIMBOLO* valor;
-INFO_SIMBOLO* valor1;
-INFO_SIMBOLO* valor2;
 
 /* para los ids */
 AMBITO ambito_actual;
@@ -39,7 +37,7 @@ int en_exp_list;
 /* tamano del vector actual */
 int tamano_vector_actual = 1;
 /* nombre del vector actual*/
-int nombre_vector_actual[MAX_LON_ID];
+char nombre_vector_actual[MAX_LON_ID];
 
 
 /* para las funciones */
@@ -54,8 +52,6 @@ int n_parametros_actual;
 int n_parametros_llamada_actual;
 /* posicion del parametro */
 int pos_parametros_actual;
-/* posicion de la llamada del parametro */
-int pos_parametros_llamada_actual;
 /* el retorno de la funcion */
 int fn_retorno;
 /* flag que nos dice si estamos dentro de una función o no */
@@ -64,13 +60,10 @@ int es_funcion = 0;
 int etiqueta = 1;
 /* identificador string de la funcion */
 char nombre_funcion_actual[MAX_LON_ID];
-/* define el tipo de retorno de la funcion (int o bool)*/
-TIPO tipo_retorno_funcion;
+
 
 %}
-
-%union
-{
+%union{
 	tipo_atributos atributos;
 }
 
@@ -212,23 +205,23 @@ tipo: TOK_INT {
   };
 
 
-######################################################### ANDARSE CON OJO CON CLASE VECTOR #############################################################
+/* ANDARSE CON OJO CON CLASE VECTOR */
 
 
 clase_vector: TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO TOK_CONSTANTE_ENTERA TOK_CORCHETEDERECHO {
 
     tamano_vector_actual = $4.valor_entero;
 
-    if(tamano_vector_actual>MAX_TAM_VECTOR || tamano_vector_actual < 1){
-      printf("****Error semantico en lin %d: El tamano del vector <%s> excede los limites permitidos (1,64).\n",linea, nombre_vector_actual);
-      return 0;
-    }
+		if(tamano_vector_actual < 1 || tamano_vector_actual > MAX_TAM_VECTOR){
+			printf("****Error semantico en lin %d: El tamanio del vector <%s> excede los limites permitidos (1,64).\n",linea, nombre_vector_actual);
+			return 0;
+		}
 
     fprintf(yyout, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ] \n");
   };
 
 
-######################################################### ANDARSE CON OJO CON CLASE VECTOR #############################################################
+/* ANDARSE CON OJO CON CLASE VECTOR */
 
 
 identificadores: identificador {fprintf(yyout, ";R18:\t<identificadores> ::= <identificador> \n");};
@@ -243,7 +236,7 @@ funcion: fn_declaracion sentencias TOK_LLAVEDERECHA {
   valor = busqueda_global($1.lexema, tabla_global);
   valor->adicional1 = n_parametros_actual;
 
-  if(fn_return==0){
+  if(fn_retorno==0){
     printf("****Error semantico en lin %d: Funcion %s sin sentencia de retorno\n", linea, $1.lexema);
     return 0;
   }
@@ -257,7 +250,7 @@ fn_declaracion: fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESI
   strcpy($$.lexema, $1.lexema);
 
 	/* llamamos a declararFuncion (GC) */
-	declararFuncion(fpasm, $1.lexema, num_variables_locales_actual)
+	declararFuncion(fpasm, $1.lexema, n_variables_locales_actual);
 
  };
 
@@ -270,6 +263,7 @@ fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR {
     return 0;
   }
 
+
   if(declarar_funcion(tabla_global, tabla_local, $3.lexema, FUNCION, tipo_actual, ESCALAR, adicional1, 0)==OK){
     ambito_actual=LOCAL;
   }
@@ -280,12 +274,12 @@ fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR {
   pos_variable_local_actual = 1;
   n_parametros_actual = 0;
   pos_parametros_actual = 0;
-  fn_return = 0;
+  fn_retorno = 0;
 
   strcpy($$.lexema, $3.lexema);
   es_funcion=1;
 
-  tipo_return=tipo_actual;
+  tipo_retorno=tipo_actual;
 
   strcpy(nombre_funcion_actual, $3.lexema);
 };
@@ -309,7 +303,7 @@ if (declarar_variable_local(tabla_local, $1.lexema,PARAMETRO, tipo_actual, ESCAL
 
   adicional1++;
   pos_parametros_actual++;
-  num_parametros_actual++;
+  n_parametros_actual++;
 };
 
 declaraciones_funcion: declaraciones {fprintf(yyout, ";R28:\t<declaraciones_funcion> ::= <declaraciones> \n");}
@@ -346,7 +340,7 @@ asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp {
 
 
 if(valor->categoria == PARAMETRO){
-	escribirParametro(fpasm, valor->adicional2, num_parametros_actual);
+	escribirParametro(fpasm, valor->adicional2, n_parametros_actual);
 }
 else if(valor->adicional2 == 0){
 	asignar(fpasm, $1.lexema, $3.es_direccion);
@@ -363,9 +357,7 @@ else {
 	return 0;
   }
 
-	/* no tenemos asignacion de vector TODO */
-
-  asignar_vector(fpasm, $3.es_direccion);
+  asignarVector(fpasm, $3.es_direccion);
   fprintf(yyout, ";R44:\t<asignacion> ::= <elemento_vector> = <exp> \n");};
 
 elemento_vector: TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {
@@ -395,17 +387,11 @@ elemento_vector: TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO
 condicional:  if_exp sentencias TOK_LLAVEDERECHA {
 
 	ifthen_fin(fpasm, $1.etiqueta);
-	// /* done */
-	fprintf(fpasm, "\nfin_si%d:\n", $1.etiqueta);
-	//
 
   fprintf(yyout, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> } \n");}
 
   | if_exp_sentencias TOK_ELSE TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {
 	  ifthenelse_fin(fpasm, $1.etiqueta);
-		// /*done */
-		fprintf(fpasm, "\nfin_sino%d:\n", $1.etiqueta);
-		//
     fprintf(yyout, ";R51:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> } \n");
   };
 
@@ -416,10 +402,8 @@ if_exp: TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIE
   }
   $$.etiqueta = etiqueta ++;
 
-	ifthen_inicio(fpasm, 3.es_direccion, $$.etiqueta);
-	// /* done */
-	abrir_if(fpasm, $$.etiqueta, $3.es_direccion);
-	//
+	ifthen_inicio(fpasm, $3.es_direccion, $$.etiqueta);
+
 };
 
 
@@ -427,21 +411,11 @@ if_exp_sentencias: if_exp sentencias TOK_LLAVEDERECHA {
 
   $$.etiqueta = $1.etiqueta;
 	ifthenelse_fin_then(fpasm, $1.etiqueta);
-	/* done*/
-	//
-  fprintf(fpasm, "\n\tjmp near fin_sino%d\n", $1.etiqueta);
-  fprintf(fpasm, "\nfin_si%d:\n", $1.etiqueta);
-	//
 };
 
 bucle: while_exp sentencias TOK_LLAVEDERECHA {
 
 	while_fin(fpasm, $1.etiqueta);
-	/* done */
-	//
-  fprintf(fpasm, "\n\n\tjmp near inicio_while%d\n", $1.etiqueta);
-  fprintf(fpasm, "\nfin_while%d:\n", $1.etiqueta);
-	//
   fprintf(yyout, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> } \n");
 };
 
@@ -487,7 +461,7 @@ lectura: TOK_SCANF TOK_IDENTIFICADOR {
   }
 
 	if(valor->categoria == PARAMETRO){
-		leerParametro(fpasm, valor->tipo, num_parametros_actual, valor->adicional2);
+		leerParametro(fpasm, valor->tipo, n_parametros_actual, valor->adicional2);
 	} else if(valor->adicional2 == 0){
 		leer(fpasm, valor->lexema, valor->tipo);
 	} else{
@@ -505,17 +479,15 @@ escritura: TOK_PRINTF exp {
 
 retorno_funcion: TOK_RETURN exp {
 
-  if((($2.es_direccion != 1) && ($2.es_direccion != 0)) || $2.tipo != tipo_return){
+  if((($2.es_direccion != 1) && ($2.es_direccion != 0)) || $2.tipo != tipo_retorno){
   	printf("****Error semantico en lin %d: Sentencia de retorno fuera de una función.\n", linea);
   	return 0;
   }
 
   retornarFuncion(fpasm, $2.es_direccion);
-  fn_return++;
+  fn_retorno++;
   fprintf(yyout, ";R61:\t<retorno_funcion> ::= return <exp> \n");
 };
-
-############################################################## RETOMAR DESDE AQUI HASTA ABAJO ################################################################
 
 
 exp: exp TOK_MAS exp {
@@ -647,7 +619,7 @@ exp: exp TOK_MAS exp {
 		if(valor->categoria == PARAMETRO){
 			$$.es_direccion = 0;
 			/* TODO puede que haya que revisar escribirParametro */
-			escribirParametro(fpasm, valor->adicional2, num_parametros_actual);
+			escribirParametro(fpasm, valor->adicional2, n_parametros_actual);
 		}else if(valor->adicional2 == 0){
 			if(en_exp_list == 0){/*si no es una direccion en la lista de parametros d la fn en_exp_list = 1*/
 				$$.es_direccion = 1;
@@ -759,28 +731,197 @@ resto_lista_expresiones: TOK_COMA exp resto_lista_expresiones {
 	| {fprintf(yyout, ";R92:\t<resto_lista_expresiones> ::=  \n");};
 
 
-#############################################   AQUI NOS HEMOS QUEDADO ##########################################################################
+comparacion: exp TOK_IGUAL exp {
 
-comparacion: exp TOK_IGUAL exp {fprintf(yyout, ";R93:\t<comparacion> ::= <exp> == <exp> \n");};
-	| exp TOK_DISTINTO exp {fprintf(yyout, ";R94:\t<comparacion> ::= <exp> != <exp> \n");};
-	| exp TOK_MENORIGUAL exp {fprintf(yyout, ";R95:\t<comparacion> ::= <exp> <= <exp> \n");};
-	| exp TOK_MAYORIGUAL exp {fprintf(yyout, ";R96:\t<comparacion> ::= <exp> >= <exp> \n");};
-	| exp TOK_MENOR exp {fprintf(yyout, ";R97:\t<comparacion> ::= <exp> < <exp> \n");};
-	| exp TOK_MAYOR exp {fprintf(yyout, ";R98:\t<comparacion> ::= <exp> > <exp> \n");};
+	if($1.tipo !=  ENTERO || $3.tipo !=  ENTERO){
+      printf("****Error semantico en lin %d: Comparacion con operandos boolean.\n", linea);
+      return 0;
+    }
+    $$.tipo = BOOLEANO;
+    $$.es_direccion = 0;
 
-constante: constante_logica {fprintf(yyout, ";R99:\t<constante> ::= <constante_logica> \n");};
-	| constante_entera {fprintf(yyout, ";R100:\t<constante> ::= <constante_entera> \n");};
+    igual(fpasm, $1.es_direccion, $3.es_direccion, etiqueta);
+    etiqueta++;
 
-constante_logica: TOK_TRUE {fprintf(yyout, ";R102:\t<constante_logica> ::= true \n");};
-	| TOK_FALSE {fprintf(yyout, ";R103:\t<constante_logica> ::= false \n");};
+	fprintf(yyout, ";R93:\t<comparacion> ::= <exp> == <exp> \n");
+	}
+	| exp TOK_DISTINTO exp {
+
+		if($1.tipo !=  ENTERO || $3.tipo !=  ENTERO){
+      printf("****Error semantico en lin %d: Comparacion con operandos boolean.\n", linea);
+      return 0;
+    }
+    $$.tipo = BOOLEANO;
+    $$.es_direccion = 0;
+
+    distinto(fpasm, $1.es_direccion, $3.es_direccion, etiqueta);
+    etiqueta++;
+
+		fprintf(yyout, ";R94:\t<comparacion> ::= <exp> != <exp> \n");
+	}
+	| exp TOK_MENORIGUAL exp {
+
+		if($1.tipo !=  ENTERO || $3.tipo !=  ENTERO){
+      printf("****Error semantico en lin %d: Comparacion con operandos boolean.\n", linea);
+      return 0;
+    }
+    $$.tipo = BOOLEANO;
+    $$.es_direccion = 0;
+
+    menor_igual(fpasm, $1.es_direccion, $3.es_direccion, etiqueta);
+    etiqueta++;
+
+		fprintf(yyout, ";R95:\t<comparacion> ::= <exp> <= <exp> \n");
+	}
+	| exp TOK_MAYORIGUAL exp {
+
+		if($1.tipo !=  ENTERO || $3.tipo !=  ENTERO){
+      printf("****Error semantico en lin %d: Comparacion con operandos boolean.\n", linea);
+      return 0;
+    }
+    $$.tipo = BOOLEANO;
+    $$.es_direccion = 0;
+
+    mayor_igual(fpasm, $1.es_direccion, $3.es_direccion, etiqueta);
+    etiqueta++;
+
+		fprintf(yyout, ";R96:\t<comparacion> ::= <exp> >= <exp> \n");
+	}
+	| exp TOK_MENOR exp {
+
+		if($1.tipo !=  ENTERO || $3.tipo !=  ENTERO){
+      printf("****Error semantico en lin %d: Comparacion con operandos boolean.\n", linea);
+      return 0;
+    }
+    $$.tipo = BOOLEANO;
+    $$.es_direccion = 0;
+
+    menor(fpasm, $1.es_direccion, $3.es_direccion, etiqueta);
+    etiqueta++;
+
+		fprintf(yyout, ";R97:\t<comparacion> ::= <exp> < <exp> \n");
+	}
+	| exp TOK_MAYOR exp {
+
+		if($1.tipo !=  ENTERO || $3.tipo !=  ENTERO){
+      printf("****Error semantico en lin %d: Comparacion con operandos boolean.\n", linea);
+      return 0;
+    }
+    $$.tipo = BOOLEANO;
+    $$.es_direccion = 0;
+
+    mayor(fpasm, $1.es_direccion, $3.es_direccion, etiqueta);
+    etiqueta++;
+
+		fprintf(yyout, ";R98:\t<comparacion> ::= <exp> > <exp> \n");
+	}
+
+constante: constante_logica {
+
+	$$.tipo = $1.tipo;
+  $$.es_direccion = $1.es_direccion;
+
+	fprintf(yyout, ";R99:\t<constante> ::= <constante_logica> \n");
+	}
+	| constante_entera {
+
+		$$.tipo = $1.tipo;
+  	$$.es_direccion = $1.es_direccion;
+
+		fprintf(yyout, ";R100:\t<constante> ::= <constante_entera> \n");
+	}
+
+constante_logica: TOK_TRUE {
+
+		$$.tipo = BOOLEANO;
+    $$.es_direccion = 0;
+
+    /* generacion de codigo */
+    fprintf(fpasm, "; numero_linea: %d\n", linea);
+    fprintf(fpasm, "\tpush dword 1\n");
+
+	fprintf(yyout, ";R102:\t<constante_logica> ::= true \n");
+	}
+	| TOK_FALSE {
+
+		$$.tipo = BOOLEANO;
+    $$.es_direccion = 0;
+
+    /* generacion de codigo */
+    fprintf(fpasm, "; numero_linea: %d\n", linea);
+    fprintf(fpasm, "\tpush dword 0\n");
+
+
+		fprintf(yyout, ";R103:\t<constante_logica> ::= false \n");
+	};
 
 /* Hemos implementado constante entera de esta forma, ya que es mucho mas sencillo
 que desarrollar todas las reglas que nos viene en la gramatica de alfa propuesta */
-constante_entera: TOK_CONSTANTE_ENTERA {fprintf(yyout, ";R104:\t<constante_entera> ::= TOK_CONSTANTE_ENTERA \n");};
+constante_entera: TOK_CONSTANTE_ENTERA {
+
+		$$.tipo = ENTERO;
+    $$.es_direccion = 0;
+
+    /* generacion de codigo */
+    fprintf(fpasm, "; numero_linea %d\n", linea);
+    fprintf(fpasm, "\tpush dword %d\n", $1.valor_entero);
+
+	fprintf(yyout, ";R104:\t<constante_entera> ::= TOK_CONSTANTE_ENTERA \n");
+};
 
 /* Hemos implementado identificador de esta forma, ya que es mucho mas sencillo
 que desarrollar todas las reglas que nos viene en la gramatica de alfa propuesta */
-identificador: TOK_IDENTIFICADOR {fprintf(yyout, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR \n");};
+identificador: TOK_IDENTIFICADOR {
+
+		if (ambito_actual == GLOBAL){
+			printf("global\n");
+	 		declarar = declarar_variable_global(tabla_global, $1.lexema, categoria_actual, tipo_actual, clase_actual, 0, 0);
+		}else{
+			printf("locals\n");
+			declarar = declarar_variable_local(tabla_local, $1.lexema, categoria_actual, tipo_actual, clase_actual, 0, 0);
+		}
+		if(declarar == ERR){
+			printf("****Error semantico en lin %d: Declaracion duplicada.\n", linea);
+			return 0;
+		}else{
+			adicional1 ++;
+		}
+		if (ambito_actual == GLOBAL){
+			valor = busqueda_global($1.lexema, tabla_global);
+		}else{
+			valor = busqueda_local($1.lexema, tabla_global, tabla_local);
+		}
+		if (!valor) {
+			printf("****Error semantico en lin %d: IAcceso a variable no declarada (%s)\n", linea, $1.lexema);
+			return 0;
+		}
+
+		/* generacion de codigo */
+
+		if(es_funcion == 0){
+			declarar_variable(fpasm, $1.lexema, clase_actual, tamano_vector_actual);
+			valor->clase = clase_actual;
+			valor->tipo = tipo_actual;
+			/*vectores*/
+			if(valor->clase == VECTOR){
+				valor->adicional1 = tamano_vector_actual;
+				strcpy(nombre_vector_actual, $1.lexema);
+			}
+		}else{
+			if(clase_actual == VECTOR){
+				printf("****Error semantico en lin %d: Variable local de tipo no escalar.\n", linea);
+				return 0;
+			}
+
+			valor->tipo = tipo_actual;
+			valor->clase = clase_actual;
+			valor->adicional2 = pos_variable_local_actual;
+			n_variables_locales_actual++;
+			pos_variable_local_actual++;
+	}
+
+	fprintf(yyout, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR \n");
+};
 
 %%
 

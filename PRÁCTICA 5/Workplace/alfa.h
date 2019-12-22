@@ -11,17 +11,11 @@
 
 
 typedef struct {
-
 	char lexema[MAX_LON_ID+1];
-
 	int tipo;
-
 	int valor_entero;
-
 	int es_direccion;
-
 	int etiqueta;
-
 } tipo_atributos;
 
 

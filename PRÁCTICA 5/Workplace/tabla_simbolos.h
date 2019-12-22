@@ -11,13 +11,13 @@ typedef enum {
 }AMBITO;
 
 /* Declara una variable en el ambito local*/
-STATUS declarar_variable_local(FILE * fout, TABLA_HASH* tabla_local, char * id, CATEGORIA categoria, TIPO tipo, CLASE clase, int adicional1, int adicional2);
+STATUS declarar_variable_local(TABLA_HASH* tabla_local, char * id, CATEGORIA categoria, TIPO tipo, CLASE clase, int adicional1, int adicional2);
 
 /* Declara una variable en el ambito global*/
-STATUS declarar_variable_global(FILE * fout, TABLA_HASH* tabla_global, char * id, CATEGORIA categoria, TIPO tipo, CLASE clase, int adicional1, int adicional2);
+STATUS declarar_variable_global(TABLA_HASH* tabla_global, char * id, CATEGORIA categoria, TIPO tipo, CLASE clase, int adicional1, int adicional2);
 
 /* Declara una funcion en el ambito global*/
-STATUS declarar_funcion(FILE * fout, TABLA_HASH* tabla_global, TABLA_HASH* tabla_local, char * id, CATEGORIA categoria, TIPO tipo, CLASE clase, int adicional1, int adicional2);
+STATUS declarar_funcion(TABLA_HASH* tabla_global, TABLA_HASH* tabla_local, char * id, CATEGORIA categoria, TIPO tipo, CLASE clase, int adicional1, int adicional2);
 
 /* Busca un simbolo en la tabla global */
 INFO_SIMBOLO* busqueda_global(char * lex, TABLA_HASH *tabla_global);
