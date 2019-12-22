@@ -117,8 +117,10 @@ void escribir_operando(FILE* fpasm, char* nombre, int es_variable){
   fprintf(fpasm,";escribir_operando\n");
 
   if(es_variable){
+    /* puede que sea [_%s] */
     fprintf(fpasm,"\tpush dword _%s\n", nombre);
   }else{
+    /* puede que sea _%s */
     fprintf(fpasm,"\tpush dword %s\n", nombre);
   }
 }
@@ -557,6 +559,7 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
 }
 
 void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta){
+  /* deprecated */
 
   fprintf(fpasm,";ifthenelse_inicio\n");
 
@@ -578,28 +581,28 @@ void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta){
     fprintf(fpasm,"\tmov dword eax, [eax]\n");
   }
   fprintf(fpasm,"\tcmp eax, 0\n");
-  fprintf(fpasm,"\tje near _if_not%d\n", etiqueta); //if no se cumple
+  fprintf(fpasm,"\tje near _fin_si%d\n", etiqueta); //if no se cumple
 }
 
 void ifthen_fin(FILE * fpasm, int etiqueta){
 
   fprintf(fpasm,";ifthen_fin\n");
 
-  fprintf(fpasm,"_if_not%d:\n", etiqueta);
+  fprintf(fpasm,"_fin_si%d:\n", etiqueta);
 }
 void ifthenelse_fin_then( FILE * fpasm, int etiqueta){
 
   fprintf(fpasm,";ifthenelse_fin_then\n");
 
-  fprintf(fpasm,"\tjmp near _after_else%d\n", etiqueta);
-  fprintf(fpasm,"_before_else%d:\n", etiqueta);
+  fprintf(fpasm,"\tjmp near _fin_sino%d\n", etiqueta);
+  fprintf(fpasm,"_fin_si%d:\n", etiqueta);
   //se ha cumplido el if, y se ejecuta then pero no else
 }
 void ifthenelse_fin( FILE * fpasm, int etiqueta){
 
   fprintf(fpasm,";ifthenelse_fin\n");
 
-  fprintf(fpasm,"_after_else%d:\n", etiqueta);
+  fprintf(fpasm,"_fin_sino%d:\n", etiqueta);
 }
 void while_inicio(FILE * fpasm, int etiqueta){
 
@@ -643,6 +646,16 @@ void escribir_elemento_vector(FILE * fpasm,char * nombre_vector, int tam_max, in
   fprintf(fpasm,"\tlea eax, [edx + eax *4]\n");
   fprintf(fpasm,"\tpush dword eax\n");
 }
+void asignarVector(FILE * fpasm, int es_direccion)
+{
+    fprintf(fpasm, "; asignarVector\n");
+    fprintf(fpasm, "\tpop dword eax\n");
+    if(es_direccion == 1){
+    	fprintf(fpasm, "\tmov dword eax, [eax]\n");
+    }
+	  fprintf(fpasm, "\tpop dword edx\n");
+    fprintf(fpasm, "\tmov dword [edx] , eax\n");
+}
 
 void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc){
 
@@ -675,8 +688,24 @@ void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros)
   fprintf(fpasm,";escribirParametro\n");
 
   fprintf(fpasm,"\tlea eax, [ebp + %d]\n", valor_a_sum);
+  /* puede que sea push dword [eax] y no eax */
   fprintf(fpasm,"\tpush dword eax\n");
 }
+void leerParametro(FILE * fpasm, int tipo, int num_parametro, int pos){
+	int valor;
+	valor = 4 + 4*(num_parametro - pos);
+	fprintf(fpasm, ";lectura parametro\n");
+	fprintf(fpasm, "\tlea eax, [ebp+%d]\n", valor);
+	fprintf(fpasm, "\tpush dword eax\n");
+	if (tipo == ENTERO) {
+        fprintf(fpasm, "\tcall scan_int\n");
+    }
+    else if (tipo == BOOLEANO) {
+        fprintf(fpasm, "\tcall scan_boolean\n");
+    }
+	fprintf(fpasm, "\tadd esp, 4\n");
+}
+
 void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
 
   int valor_a_res;
@@ -686,7 +715,22 @@ void escribirVariableLocal(FILE* fpasm, int posicion_variable_local){
   fprintf(fpasm,";escribirVariableLocal\n");
 
   fprintf(fpasm,"\tlea eax, [ebp - %d]\n", valor_a_res);
+  /* puede que sea [eax] */
   fprintf(fpasm,"\tpush dword eax\n");
+}
+void leerLocal(FILE * fpasm, int tipo, int pos){
+	int valor;
+	valor = 4*pos;
+  fprintf(fpasm, "; lectura local\n");
+	fprintf(fpasm, "\n;lea eax, [ebp-4*%d], eax\n", pos);
+	fprintf(fpasm, "\tlea eax, [ebp-%d]\n", valor);
+	fprintf(fpasm, "\tpush dword eax\n");
+	if (tipo == ENTERO) {
+        fprintf(fpasm, "\tcall scan_int\n");
+    }else if (tipo == BOOLEANO) {
+        fprintf(fpasm, "\tcall scan_boolean\n");
+    }
+    fprintf(fpasm, "\tadd esp, 4\n");
 }
 void asignarDestinoEnPila(FILE* fpasm, int es_variable){
 
