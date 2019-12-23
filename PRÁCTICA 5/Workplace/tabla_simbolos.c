@@ -28,13 +28,9 @@ STATUS declarar_variable_local(TABLA_HASH* tabla_local, char * id, CATEGORIA cat
 STATUS declarar_variable_global(TABLA_HASH* tabla_global, char * id, CATEGORIA categoria, TIPO tipo, CLASE clase, int adicional1, int adicional2){
 
   /* verificamos que la variable a insertar no este en la tabla global */
-  printf("id: ");
-  printf("%s\n", id);
-
   if(buscar_simbolo(tabla_global, id)==NULL) {
     /* verificamos que la insercion se ha realizado de forma correcta */
     if (insertar_simbolo(tabla_global, id, categoria, tipo, clase, adicional1, adicional2)==ERR) {
-      printf("global1\n");
         return ERR;
     }
     /* al realizarse la insercion de forma correcta imprimimos el id */
@@ -42,7 +38,6 @@ STATUS declarar_variable_global(TABLA_HASH* tabla_global, char * id, CATEGORIA c
     return OK;
   }
   else {
-    printf("global2\n");
   /* al no realizarse de forma correcta, imprimimos -1 seguido del id */
     /* fprintf(fout, "-1 %s\n", id); */
     return ERR;

@@ -34,7 +34,6 @@ id = nombre de la variable
 adic2 no se utiliza en esta practica, pero lo dejamos preparado para las siguientes
  */
 STATUS DeclararVariableGlobal(TABLA_HASH* tablaGlobal, char * id, CATEGORIA categoria, TIPO tipo, CLASE clase, int adic1, int adic2) {
-    printf("%s\n", id);
     if (buscar_simbolo(tablaGlobal, id) == NULL) { 
         if (insertar_simbolo(tablaGlobal, id, categoria, tipo, clase, adic1, adic2) == ERR) {
             return ERR;

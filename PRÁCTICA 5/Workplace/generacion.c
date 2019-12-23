@@ -26,8 +26,8 @@ void escribir_subseccion_data(FILE* fpasm){
   fprintf(fpasm,";escribir_subseccion_data\n");
 
   fprintf(fpasm,"segment .data\n");
-  fprintf(fpasm,"\tmsj_error_div_0 db \"Division por cero\", 0\n");
-  fprintf(fpasm,"\tmsj_error_ind_fuera_rango db \"Indice fuera de rango\", 0\n");
+  fprintf(fpasm,"\tmsj_error_div_0 db \"****Error de ejecucion: Division por cero.\", 0\n");
+  fprintf(fpasm,"\tmsj_error_ind_fuera_rango db \"****Error de ejecucion: Indice fuera de rango.\", 0\n");
 }
 /*
 Declaración (con directiva db) de las variables que contienen el texto de los
@@ -118,10 +118,10 @@ void escribir_operando(FILE* fpasm, char* nombre, int es_variable){
 
   if(es_variable){
     /* puede que sea [_%s] */
-    fprintf(fpasm,"\tpush dword _%s\n", nombre);
+    fprintf(fpasm,"\tpush dword [_%s]\n", nombre);
   }else{
     /* puede que sea _%s */
-    fprintf(fpasm,"\tpush dword %s\n", nombre);
+    fprintf(fpasm,"\tpush dword _%s\n", nombre);
   }
 }
 /*
@@ -689,7 +689,7 @@ void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros)
 
   fprintf(fpasm,"\tlea eax, [ebp + %d]\n", valor_a_sum);
   /* puede que sea push dword [eax] y no eax */
-  fprintf(fpasm,"\tpush dword eax\n");
+  fprintf(fpasm,"\tpush dword [eax]\n");
 }
 void leerParametro(FILE * fpasm, int tipo, int num_parametro, int pos){
 	int valor;
